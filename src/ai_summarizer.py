@@ -175,7 +175,7 @@ class AISummarizer:
         # If there is no history, the question is already standalone
         if not history:
             return question
-
+        """
         system_prompt = (
             "You are a strict query reformulator. "
             "Given a chat history and the latest user query, your ONLY job is to rewrite the latest user query "
@@ -186,7 +186,19 @@ class AISummarizer:
             "3. ONLY return the rewritten standalone query.\n"
             "4. If the query is already standalone, return it exactly as is."
         )
-        
+        """
+        system_prompt = (
+            "You are a strict query reformulator.\n"
+            "Given the full chat history and the latest user query, your ONLY task is to rewrite the latest user query "
+            "into a single, fully standalone, explicit, and searchable question.\n\n"
+            "CRITICAL RULES:\n"
+            "1. DO NOT answer the question.\n"
+            "2. DO NOT add explanations, disclaimers, or extra text.\n"
+            "3. Resolve all pronouns, references, and implicit context using the chat history.\n"
+    "4. Preserve the original intent and technical meaning exactly.\n"
+    "5. If the query is already fully standalone, return it EXACTLY as is.\n"
+    "6. Output ONLY the rewritten standalone query."
+)
         messages = [{"role": "system", "content": system_prompt}]
         for msg in history:
             if msg.get("role") in ["user", "assistant"]:
