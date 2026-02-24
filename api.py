@@ -546,7 +546,8 @@ def command(body: CommandBody):
         return {
              "action": "speak", 
              "message": f"Found matching files. Say a number (1-{len(top_matches)}) to select.",
-             "tts_text": " ".join(tts_parts)
+             "tts_text": " ".join(tts_parts),
+             "pending_files": top_matches
         }
 
     # REPEAT CURRENT FILE LIST
@@ -559,7 +560,16 @@ def command(body: CommandBody):
             clean_name = f['name'].replace('.pdf','').replace('.docx','').replace('.doc','')
             tts_parts.append(f"{offset+i+1}: {clean_name}.")
         tts_parts.append("Say the number or name to open.")
-        return {"action": "speak", "message": "Repeating options...", "tts_text": " ".join(tts_parts)}
+        
+        # reconstruct top_matches structure for frontend
+        top_matches = [{"filename": f['name'], "path": f['path']} for f in chunk]
+        
+        return {
+             "action": "speak", 
+             "message": "Repeating options...", 
+             "tts_text": " ".join(tts_parts),
+             "pending_files": top_matches
+        }
 
     # LOCAL FOLDER SEARCH (The Study Desk fallback)
     if any(k in c for k in ["open file", "upload document", "upload file", "open document"]):

@@ -54,7 +54,8 @@ def search_files(target_filename, search_dir, limit=5):
             continue
             
         full_path = file_basenames[match]
-        if score > 35 and full_path not in seen_paths:
+        # Increased threshold to 65 to ensure high relevance and avoid spurious matches
+        if score > 65 and full_path not in seen_paths:
              results.append({
                  "filename": match,
                  "path": full_path,

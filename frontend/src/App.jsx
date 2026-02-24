@@ -580,6 +580,7 @@ function AppInner() {
   // Chat/AI State
   const [chatHistory, setChatHistory] = useState([])
   const [aiLoading, setAiLoading] = useState(false)
+  const [pendingVoiceFiles, setPendingVoiceFiles] = useState(null)
 
   const audioRef = useRef(null)
 
@@ -811,6 +812,15 @@ function AppInner() {
         setDocState(s => ({ ...s, page: data.page, total: data.total, label: data.label, text: data.text }))
       }
       if (data.bookmarks) setBookmarks(data.bookmarks)
+      if (data.pending_files) setPendingVoiceFiles(data.pending_files)
+      else if (data.action !== 'speak' || data.message === 'Repeating options...') {
+        // Clear it if we are actually loading a file or did a successful action that isn't just speaking error
+        // (except if it is the repeating options action, then keep/update it)
+        if (!data.pending_files && !data.message?.includes('Found matching files')) {
+          setPendingVoiceFiles(null)
+        }
+      }
+
       if (data.tts_text) handleSpeak(data.tts_text)
       if (data.message) showStatus(data.message, data.action === 'error' ? 'error' : 'ok')
       if (data.action === 'stop') handleSpeak(null)
@@ -921,6 +931,34 @@ function AppInner() {
             </div>
             {liveTranscript && <div style={{ fontSize: '1.2rem', fontWeight: 500, marginTop: '4px' }}>{liveTranscript}</div>}
           </div>
+        </div>
+      )}
+
+      {pendingVoiceFiles && pendingVoiceFiles.length > 0 && (
+        <div style={{
+          position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+          background: 'var(--bg-card)', color: 'var(--text)', padding: '24px', borderRadius: '16px',
+          boxShadow: '0 12px 48px rgba(0,0,0,0.6)', zIndex: 10000,
+          border: '1px solid var(--border)', minWidth: '400px',
+          animation: 'fadeIn 0.2s ease-out'
+        }}>
+          <h3 style={{ marginTop: 0, marginBottom: 12 }}>🔍 Select a Document</h3>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginBottom: 16 }}>
+            Say the number, click an option, or say "repeat names".
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {pendingVoiceFiles.map((f, i) => (
+              <button key={i} className="btn" style={{
+                textAlign: 'left', justifyContent: 'flex-start', background: 'var(--bg)', border: '1px solid var(--border)',
+                padding: '12px 16px', borderRadius: '8px'
+              }}
+                onClick={() => { setPendingVoiceFiles(null); dispatchCommand(f.filename) }}>
+                <span style={{ color: 'var(--blue)', fontWeight: 600, marginRight: 12, minWidth: '20px', display: 'inline-block' }}>{i + 1}.</span>
+                {f.filename}
+              </button>
+            ))}
+          </div>
+          <button className="btn btn-ghost mt-16" style={{ width: '100%' }} onClick={() => setPendingVoiceFiles(null)}>Cancel</button>
         </div>
       )}
 
