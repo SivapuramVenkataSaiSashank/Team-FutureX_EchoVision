@@ -947,16 +947,29 @@ function AppInner() {
             Say the number, click an option, or say "repeat names".
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {pendingVoiceFiles.map((f, i) => (
-              <button key={i} className="btn" style={{
-                textAlign: 'left', justifyContent: 'flex-start', background: 'var(--bg)', border: '1px solid var(--border)',
-                padding: '12px 16px', borderRadius: '8px'
-              }}
-                onClick={() => { setPendingVoiceFiles(null); dispatchCommand(f.filename) }}>
-                <span style={{ color: 'var(--blue)', fontWeight: 600, marginRight: 12, minWidth: '20px', display: 'inline-block' }}>{i + 1}.</span>
-                {f.filename}
-              </button>
-            ))}
+            {pendingVoiceFiles.map((f, i) => {
+              // Extract extension for display
+              const parts = f.filename.split('.')
+              const ext = parts.length > 1 ? parts.pop().toUpperCase() : 'DOC'
+              const nameOnly = parts.join('.')
+
+              return (
+                <button key={i} className="btn" style={{
+                  textAlign: 'left', display: 'flex', alignItems: 'center', background: 'var(--bg)', border: '1px solid var(--border)',
+                  padding: '12px 16px', borderRadius: '8px', color: 'var(--text)'
+                }}
+                  onClick={() => { setPendingVoiceFiles(null); dispatchCommand(f.filename) }}>
+                  <span style={{ color: 'var(--blue)', fontWeight: 600, marginRight: 12, minWidth: '24px' }}>{i + 1}.</span>
+                  <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nameOnly}</span>
+                  <span style={{
+                    fontSize: '0.7rem', background: 'var(--bg3)', border: '1px solid var(--border2)',
+                    padding: '2px 8px', borderRadius: '12px', color: 'var(--text-muted)', marginLeft: '12px', fontWeight: 600
+                  }}>
+                    {ext}
+                  </span>
+                </button>
+              )
+            })}
           </div>
           <button className="btn btn-ghost mt-16" style={{ width: '100%' }} onClick={() => setPendingVoiceFiles(null)}>Cancel</button>
         </div>

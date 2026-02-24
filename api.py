@@ -539,8 +539,11 @@ def command(body: CommandBody):
         
         tts_parts = [f"I found {len(top_matches)} matches for {target}."]
         for i, m in enumerate(top_matches):
-             clean_name = m['filename'].replace('.pdf','').replace('.docx','').replace('.doc','')
-             tts_parts.append(f"{i+1}: {clean_name}.")
+             parts = m['filename'].split('.')
+             ext = parts.pop().upper() if len(parts) > 1 else 'DOC'
+             clean_name = ".".join(parts)
+             
+             tts_parts.append(f"{i+1}: {clean_name}, {ext} file.")
         tts_parts.append("Which one would you like to open? Say the number, or say 'repeat names'.")
         
         return {
@@ -557,8 +560,10 @@ def command(body: CommandBody):
         chunk = files[offset:offset+5]
         tts_parts = [f"Here are the options again."]
         for i, f in enumerate(chunk):
-            clean_name = f['name'].replace('.pdf','').replace('.docx','').replace('.doc','')
-            tts_parts.append(f"{offset+i+1}: {clean_name}.")
+            parts = f['name'].split('.')
+            ext = parts.pop().upper() if len(parts) > 1 else 'DOC'
+            clean_name = ".".join(parts)
+            tts_parts.append(f"{offset+i+1}: {clean_name}, {ext} file.")
         tts_parts.append("Say the number or name to open.")
         
         # reconstruct top_matches structure for frontend
