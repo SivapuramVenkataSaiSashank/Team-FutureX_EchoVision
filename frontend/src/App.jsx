@@ -814,6 +814,10 @@ function AppInner() {
       if (data.action === 'stop') handleSpeak(null)
       if (data.action === 'stream_summary') summarizeManual(data.length, null)
       if (data.action === 'stream_answer') askManual(data.question)
+      if (data.action === 'open_file_dialog') {
+        const fileInput = document.querySelector('input[type="file"]')
+        if (fileInput) fileInput.click()
+      }
     } catch (e) { showStatus('❌ ' + e.message, 'error') }
     setMicState('idle')
   }
