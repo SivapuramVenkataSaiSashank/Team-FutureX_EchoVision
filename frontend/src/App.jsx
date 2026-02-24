@@ -371,7 +371,8 @@ function ChatTab({ docState, apiReady, onStatus, onSpeak, chatHistory, setChatHi
               color: msg.role === 'user' ? 'inherit' : 'var(--text)',
               border: msg.role === 'user' ? 'none' : '1px solid var(--border)',
               lineHeight: 1.5,
-              fontSize: '0.92rem'
+              fontSize: '0.92rem',
+              whiteSpace: 'pre-wrap'
             }}>
               {msg.role === 'system' && <strong style={{ color: 'var(--orange)' }}>🤖 System: </strong>}
               {msg.content}
