@@ -241,7 +241,10 @@ def ask(body: AskBody):
         raise HTTPException(400, detail="No document loaded.")
         
     def sse_generator():
-        for chunk in ai.ask(body.question, doc.get_full_text(), body.history):
+        # Retrieve the most relevant chunks using ChromaDB
+        relevant_context = doc.get_relevant_context(body.question, n_results=5)
+        
+        for chunk in ai.ask(body.question, relevant_context, body.history):
             yield chunk
             
     return StreamingResponse(sse_generator(), media_type="text/plain")

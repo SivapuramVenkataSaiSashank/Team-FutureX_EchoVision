@@ -4,6 +4,10 @@ Handles text extraction from PDF, DOCX, and EPUB files.
 """
 import os
 import re
+import uuid
+import chromadb
+from chromadb.config import Settings
+from chromadb.utils import embedding_functions
 
 class DocumentProcessor:
     def __init__(self):
@@ -12,6 +16,13 @@ class DocumentProcessor:
         self.file_path = None
         self.doc_type = None
         self.title = "Untitled Document"
+        
+        # ChromaDB setup
+        self.chroma_client = chromadb.Client(Settings(anonymized_telemetry=False))
+        # Use simple built-in default embeddings (all-MiniLM-L6-v2) for speed
+        self.embedding_fn = embedding_functions.DefaultEmbeddingFunction()
+        self.collection_name = "doc_collection"
+        self.collection = None
 
     # ─────────────────────────── Public API ───────────────────────────
 
@@ -38,7 +49,11 @@ class DocumentProcessor:
                 self.doc_type = "TXT"
             else:
                 return False
-            return len(self.pages) > 0
+                
+            if len(self.pages) > 0:
+                self._build_vector_index()
+                return True
+            return False
         except Exception as e:
             print(f"[DocumentProcessor] Load error: {e}")
             return False
@@ -101,7 +116,79 @@ class DocumentProcessor:
                 results.append({"page": page["index"], "label": page["label"], "snippet": snippet})
         return results
 
+    def get_relevant_context(self, query: str, n_results: int = 4) -> str:
+        """Fetch the most relevant text chunks for a given query via ChromaDB."""
+        if not self.collection or self.collection.count() == 0:
+            return self.get_full_text(max_chars=10000)
+
+        # Ensure we don't ask for more results than we have chunks
+        k = min(n_results, self.collection.count())
+        if k == 0:
+            return ""
+            
+        try:
+            results = self.collection.query(
+                query_texts=[query],
+                n_results=k
+            )
+            
+            if not results["documents"] or not results["documents"][0]:
+                return self.get_full_text(max_chars=10000)
+                
+            # Combine the returned chunks
+            documents = results["documents"][0]
+            context = "\n...\n".join(documents)
+            return context
+        except Exception as e:
+            print(f"[DocumentProcessor] Vector search failed: {e}. Falling back to full text.")
+            return self.get_full_text(max_chars=10000)
+
     # ─────────────────────────── Private loaders ───────────────────────
+
+    def _build_vector_index(self):
+        """Index all loaded pages into an ephemeral Chroma collection."""
+        try:
+            # Recreate collection to clear old data
+            try:
+                self.chroma_client.delete_collection(name=self.collection_name)
+            except Exception:
+                pass
+                
+            self.collection = self.chroma_client.create_collection(
+                name=self.collection_name, 
+                embedding_function=self.embedding_fn
+            )
+            
+            # Simple chunking logic to ensure we don't hit max payload sizes
+            docs = []
+            metadatas = []
+            ids = []
+            
+            for page in self.pages:
+                text = page["text"]
+                # Chunk aggressively for better vector retrieval
+                words = text.split()
+                chunk_size = 300
+                overlap = 50
+                
+                if not words: continue
+                
+                for i in range(0, len(words), chunk_size - overlap):
+                    chunk = " ".join(words[i:i + chunk_size])
+                    docs.append(chunk)
+                    metadatas.append({"page": page["index"], "label": page["label"]})
+                    ids.append(str(uuid.uuid4()))
+                    
+            if docs:
+                self.collection.add(
+                    documents=docs,
+                    metadatas=metadatas,
+                    ids=ids
+                )
+                print(f"[DocumentProcessor] Indexed {len(docs)} chunks into ChromaDB.")
+        except Exception as e:
+            print(f"[DocumentProcessor] Error bulding vector index: {e}")
+            self.collection = None
 
     def _load_pdf(self, filepath: str):
         import fitz  # PyMuPDF
