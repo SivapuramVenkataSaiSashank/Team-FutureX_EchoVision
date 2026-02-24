@@ -115,6 +115,12 @@ def set_key(body: ApiKeyBody):
 # ══════════════════════════════════════════════════════════
 @app.post("/api/upload")
 async def upload_file(file: UploadFile = File(...)):
+    import subprocess
+    try:
+        subprocess.run(["taskkill", "/IM", "narrator.exe", "/F"], capture_output=True)
+    except Exception:
+        pass
+        
     ext = os.path.splitext(file.filename)[1].lower()
     if ext not in (".pdf", ".docx", ".doc", ".epub", ".txt"):
         raise HTTPException(400, detail=f"Unsupported file type: {ext}")
@@ -393,6 +399,15 @@ def command(body: CommandBody):
             session_state["awaiting_file"] = False
             return {"action": "speak", "message": "Cancelled file selection.", "tts_text": "Okay, cancelled."}
 
+        if any(k in c for k in ["open other file", "browse computer", "browse folders", "open different file"]):
+            session_state["awaiting_file"] = False
+            import subprocess
+            try:
+                subprocess.Popen(["cmd.exe", "/c", "start", "narrator"])
+            except Exception:
+                pass
+            return {"action": "open_file_dialog", "message": "Opening computer file browser...", "tts_text": "Opening your computer's file browser. Please use your screen reader to select a file."}
+
         # Handling "next" pagination
         if any(k in c for k in ["next", "more", "continue", "next page"]):
             new_offset = offset + 5
@@ -451,14 +466,8 @@ def command(body: CommandBody):
         return {"action": "speak", "message": "File not recognized. Please try say 'open file' again.", "tts_text": "I didn't catch that. Please try saying open file again."}
 
     if any(k in c for k in ["open file", "upload document", "upload file", "open document"]):
-        # Find files in VoiceRead_Docs, User Downloads, and User Documents
+        # Find files ONLY in VoiceRead_Docs ("The Study Desk")
         search_dirs = [VOICE_DOCS_DIR]
-        import platform
-        if platform.system() == "Windows":
-            user_profile = os.environ.get('USERPROFILE')
-            if user_profile:
-                search_dirs.append(os.path.join(user_profile, 'Downloads'))
-                search_dirs.append(os.path.join(user_profile, 'Documents'))
         
         found_files = []
         for d in search_dirs:
@@ -474,13 +483,13 @@ def command(body: CommandBody):
         found_files.sort(key=lambda x: os.path.getmtime(x['path']) if os.path.exists(x['path']) else 0, reverse=True)
 
         if not found_files:
-            return {"action": "speak", "message": "No PDFs or Word documents found in VoiceRead_Docs, Downloads, or Documents folders.", "tts_text": "I could not find any P D Fs or Word documents in your folders."}
+            return {"action": "speak", "message": "No documents found in VoiceRead_Docs folder. Say 'open other file' to browse your computer.", "tts_text": "I could not find any documents on your study desk. Say 'open other file' to browse your computer."}
         
         session_state["awaiting_file"] = True
         session_state["files"] = found_files
         session_state["files_offset"] = 0
         
-        tts_parts = [f"I found {len(found_files)} files."]
+        tts_parts = [f"I found {len(found_files)} files on your study desk."]
         
         chunk = found_files[:5]
         for i, f in enumerate(chunk):
@@ -488,11 +497,20 @@ def command(body: CommandBody):
             tts_parts.append(f"{i+1}: {clean_name}.")
             
         if len(found_files) > 5:
-            tts_parts.append("Say the number, the name, or say 'next' to hear the next files.")
+            tts_parts.append("Say the number, the name, say 'next', or say 'open other file' to browse your computer.")
         else:
-            tts_parts.append("Which one would you like to open? Say the number or the name.")
+            tts_parts.append("Which one would you like to open? Say the number, the name, or say 'open other file' to browse your computer.")
         
         return {"action": "speak", "message": f"Listening for file selection (1-{len(found_files)})...", "tts_text": " ".join(tts_parts)}
+
+    # Triggering the native OS File Manager popup for everything else
+    if any(k in c for k in ["open other file", "browse computer", "browse folders", "open different file"]):
+        import subprocess
+        try:
+            subprocess.Popen(["narrator"])
+        except Exception:
+            pass
+        return {"action": "open_file_dialog", "message": "Opening computer file browser...", "tts_text": "Opening your computer's file browser. Please use your screen reader to select a file."}
 
     if not doc.page_count():
         return {"action":"error","message":"No document loaded."}
