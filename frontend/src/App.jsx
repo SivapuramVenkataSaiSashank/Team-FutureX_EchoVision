@@ -367,7 +367,7 @@ function ChatTab({ docState, apiReady, onStatus, onSpeak, chatHistory, setChatHi
               maxWidth: '85%',
               padding: '10px 14px',
               borderRadius: msg.role === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-              background: msg.role === 'user' ? 'var(--blue)' : 'var(--bg-card)',
+              background: msg.role === 'user' ? 'var(--blue)' : 'var(--bg2)',
               color: msg.role === 'user' ? 'inherit' : 'var(--text)',
               border: msg.role === 'user' ? 'none' : '1px solid var(--border)',
               lineHeight: 1.5,
