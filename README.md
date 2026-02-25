@@ -1,142 +1,119 @@
-# EchoVision — AI Reading Assistant for Blind Learners 🎙️📚
+# EchoVision — NLP Agentic RAG Document QA 🎙️📚
 
 > **futureX Project**  
-> *Voice-activated AI summarization and reading assistant for blind learners*
+> *A fully voice-controlled, multimodal AI workspace for blind learners and professionals.*
 
 ---
 
-## Problem Statement
-Blind or visually impaired learners face difficulty accessing digital documents like PDFs. Current AI summarization tools require manual selection or clicking, making them inaccessible for people who rely on voice commands.
+## 🎯 Problem Statement
+Current digital accessibility tools (like Windows Narrator) are linear, "blind" screen readers forcing visually impaired users to slog through hundreds of pages of irrelevant text. General LLMs require manual file uploading and strict graphical interactions, making them difficult to use hands-free.
 
-**Our Solution:** A fully voice-controlled AI reading assistant that lets users:
-- Open documents via voice
-- Get AI-generated summaries read aloud
-- Navigate, bookmark, and ask questions — all hands-free
+**Our Solution:** EchoVision is an intelligent, completely **voice-controlled Agentic RAG** (Retrieval-Augmented Generation) workspace allowing users to dynamically upload multiple documents, build a local vector database, ask complex queries across files, and granularly manage their context window—all via natural speech and offline Text-to-Speech playback. 
 
 ---
 
-## Features
-| Feature | Description |
-|---------|-------------|
-| 🎙️ Voice Control | 12+ natural voice commands with live transcription |
-| ✨ AI Summarization | Short / Medium / Detailed summaries via Google Gemini |
-| 💬 Voice Q&A | Ask questions about the document, AI answers aloud |
-| 📄 Multi-format | PDF, DOCX, EPUB, TXT supported |
-| 🔖 Bookmarks | Save & jump to positions, persisted across sessions |
-| 📖 Read Aloud | Full document or page-by-page TTS playback |
-| 🔍 Search | Full-text search with highlighting |
-| 📤 Export | Save AI summary as .txt file |
-| 🌙 Dark UI | High-contrast accessible dark theme |
+## ✨ Key Features
+- **🎙️ Acoustic Intent Retrieval**: Navigate and select local files via pure voice commands bypassing the standard OS GUI file explorer.
+- **📚 Multi-Document Aggregation**: Sequentially append PDFs, DOCX, EPUBs, and TXTs into a unified Vector Space context.
+- **🗑️ Granular Voice Deletion**: Say *"delete file [filename]"* to eject a specific document from your workspace while intuitively preserving the rest.
+- **💬 Semantic RAG Q&A**: Stop reading linearly. Ask *"What does this syllabus say about finals?"* and receive a precise synthesized answer.
+- **🔒 100% Offline Auditory Privacy**: Advanced local TTS serving using Coqui TTS and eSpeak NG guarantees sensitive document audio never hits external APIs.
+- **⚡ Interruptible Playback**: Halting audio playback via any generic keystroke without breaking the application state.
+- **🔖 Persistent Bookmarking & Search**: Semantic search alongside rapid page-jumping.
 
 ---
 
-## Setup & Run
+## 🛠️ Technology Stack
+| Layer | Tech Stack |
+|-------|------------|
+| **Backend Framework** | FastAPI, Uvicorn, Python (3.10+) |
+| **Frontend UI** | React (18+), Vite, HTML5, Vanilla CSS3 |
+| **LLM Inference** | Groq API, LangChain |
+| **Vector DB & Search** | ChromaDB, Sentence-Transformers |
+| **Speech Generation (TTS)**| Coqui TTS, eSpeak NG |
+| **Speech Recognition** | Web Speech API (`webkitSpeechRecognition`) |
+| **Document Parsers** | PyMuPDF (`fitz`), `python-docx`, EbookLib, BeautifulSoup4 |
+| **Intent Matching** | FuzzyWuzzy / RapidFuzz |
 
-### Option 1: One-click launcher (Windows)
-```
-Double-click run.bat
-```
+---
 
-### Option 2: Manual
+## 🚀 Setup & Execution
+
+### 1. Prerequisites
+- Python 3.10+
+- Node.js (for React frontend)
+- [eSpeak NG](https://github.com/espeak-ng/espeak-ng) installed and added to standard Windows PATH (required for Coqui TTS fallback).
+
+### 2. Backend Initialization
 ```bash
-# Clone / download the project
-cd "futureX"
+# Clone the repository
+git clone https://github.com/your-org/EchoVision.git
+cd EchoVision
 
-# Create virtual environment
+# Create and activate virtual environment
 python -m venv venv
-
-# Activate
 venv\Scripts\activate      # Windows
 source venv/bin/activate   # Mac/Linux
 
 # Install dependencies
 pip install -r requirements.txt
 
-# Run
-python main.py
+# Create .env and add API Key
+echo 'GROQ_API_KEY="your_groq_api_key_here"' > .env
+
+# Run FastAPI Server
+python api.py
 ```
+*(The backend typically runs on http://localhost:8000)*
 
----
+### 3. Frontend Initialization (New Terminal)
+```bash
+cd frontend
 
-## Getting a Gemini API Key
-1. Visit [Google AI Studio](https://aistudio.google.com/app/apikey)
-2. Sign in with your Google account
-3. Click **Create API Key**
-4. Copy the key
-5. In the app, click **🔑 Set API Key** (top-right) and paste it
+# Install dependencies
+npm install
 
-The key is used only locally and never stored permanently.
-
----
-
-## Voice Commands
-| Say this... | Action |
-|------------|--------|
-| `"open file"` | Open file picker |
-| `"read document"` | Read current page aloud |
-| `"summarize"` | AI summary of entire doc |
-| `"summarize briefly"` | Short 2-3 sentence summary |
-| `"summarize chapter 3"` | AI summary of chapter 3 |
-| `"next page"` | Go to next page |
-| `"go to page 5"` | Jump to page 5 |
-| `"bookmark this"` | Save current position |
-| `"go to bookmark"` | Return to bookmark |
-| `"ask what is the main topic"` | AI Q&A |
-| `"export summary"` | Save summary to file |
-| `"stop"` | Stop reading |
-| `"help"` | Hear all commands |
-
----
-
-## Tech Stack
-| Component | Technology |
-|-----------|------------|
-| Language | Python 3.10+ |
-| GUI | Tkinter (dark themed, animated) |
-| AI | Google Gemini 1.5 Flash |
-| Voice Input | SpeechRecognition (Google STT) |
-| Voice Output | pyttsx3 (offline) + gTTS (online) |
-| PDF | PyMuPDF (fitz) |
-| Word | python-docx |
-| eBook | ebooklib + BeautifulSoup4 |
-
----
-
-## Project Structure
+# Run Vite dev server
+npm run dev
 ```
-futureX/
-├── main.py               ← Entry point + Tkinter GUI
-├── requirements.txt      ← Python dependencies
-├── run.bat               ← One-click Windows launcher
+*(The React UI will launch at http://localhost:5173)*
+
+---
+
+## 🗣️ Core Voice Commands
+*(Activate mic with `Ctrl+M` or by clicking the microphone icon)*
+
+| Intent | Expected Phrase |
+|--------|-----------------|
+| **Open File (Search)** | *"Find my biology notes"* or *"Look for syllabus"* |
+| **Read Linear** | *"Read document"* or *"Next page"* or *"Go to page 5"* |
+| **Complex RAG Q&A** | *"Ask: What is the main argument of chapter 3?"* |
+| **Summarize Action** | *"Give me a detailed summary"* or *"Summarize briefly"* |
+| **Granular Deletion** | *"Delete file chemistry"* or *"Remove document"* |
+| **Clear Workspace** | *"Delete all"* or *"Close document"* |
+| **Stop Audio** | *"Stop"* / *"Quiet"* (or hit any key on the keyboard) |
+
+---
+
+## 📂 Project Architecture
+```text
+EchoVision/
+├── api.py                    ← Main FastAPI backend router & Voice Command Dispatcher
+├── requirements.txt
+├── .env                      ← Groq API keys
 ├── src/
-│   ├── document_processor.py  ← PDF/DOCX/EPUB text extraction
-│   ├── speech_engine.py       ← STT + TTS engine
-│   ├── ai_summarizer.py       ← Google Gemini integration
-│   ├── voice_assistant.py     ← Voice command router
-│   └── bookmarks.py           ← Bookmark persistence
-└── data/                 ← Bookmark JSON files (auto-created)
+│   ├── document_processor.py ← PDF/DOCX/EPUB parsing & ChromaDB embedding logic
+│   ├── ai_summarizer.py      ← Langchain & Groq Q&A / Summarization pipeline
+│   ├── fuzzy_search.py       ← Local file directory semantic intent matching
+│   └── text_chunker.py       
+└── frontend/                 ← React / Vite Application
+    ├── src/
+    │   ├── App.jsx           ← Main UI view and Context state tracking
+    │   ├── NetworkBackground.jsx
+    │   └── index.css         ← Modern glassmorphic styling
+    └── index.html
 ```
 
 ---
 
-## Keyboard Shortcuts
-| Key | Action |
-|-----|--------|
-| `Space` | Toggle microphone on/off |
-| `Esc` | Stop speaking immediately |
-| `Enter` (in Q&A box) | Submit typed question |
-| `Enter` (in page box) | Jump to that page |
-
----
-
-## Inspiration
-Built by studying these open-source projects:
-- [Bookworm](https://github.com/blindpandas/bookworm) — Accessible document reader
-- [VoCo App](https://github.com/uzibytes/Voco_App) — SIH 2022 Winner for VI users
-- [Blind-Assistant](https://github.com/kavipriya2004/Blind-Assistant) — STT/TTS/PDF assistant
-- [Vakta](https://github.com/krrish-v/vakta) — LLM voice learning platform
-- [VoiceAid](https://github.com/sankeer28/VoiceAid) — Gemini-powered doc QA
-
----
-
-*Made with ❤️ for futureX*
+*Made with ❤️ for futureX & Hackathon 2026*
