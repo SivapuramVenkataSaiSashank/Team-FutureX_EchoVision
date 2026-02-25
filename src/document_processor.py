@@ -58,6 +58,32 @@ class DocumentProcessor:
             print(f"[DocumentProcessor] Load error: {e}")
             return False
 
+    def unload(self, delete_file: bool = False) -> bool:
+        """Clear document from memory and optionally delete the file from disk."""
+        try:
+            if delete_file and self.file_path and os.path.isfile(self.file_path):
+                try:
+                    os.remove(self.file_path)
+                except Exception as e:
+                    print(f"Could not delete file {self.file_path}: {e}")
+
+            if self.collection:
+                try:
+                    self.chroma_client.delete_collection(name=self.collection_name)
+                    self.collection = None
+                except Exception:
+                    pass
+
+            self.pages = []
+            self.current_page = 0
+            self.file_path = None
+            self.doc_type = None
+            self.title = "Untitled Document"
+            return True
+        except Exception as e:
+            print(f"[DocumentProcessor] Unload error: {e}")
+            return False
+
     def page_count(self) -> int:
         return len(self.pages)
 

@@ -178,6 +178,22 @@ function Sidebar({ docState, setDocState, bookmarks, setBookmarks, apiReady, onS
                 Go →
               </button>
             </div>
+
+            <div className="row mb-8">
+              <button className="btn btn-danger btn-sm" style={{ flex: 1 }} onClick={async () => {
+                if (confirm("Are you sure you want to delete this document?")) {
+                  try {
+                    await api('/document', { method: 'DELETE' });
+                    setDocState({ loaded: false, page: 0, total: 0, label: '', text: '', title: '', ext: '' });
+                    setBookmarks([]);
+                    onStatus('🗑️ Document deleted.', 'ok');
+                    setActiveTab('doc');
+                  } catch (e) {
+                    onStatus('❌ ' + e.message, 'error');
+                  }
+                }
+              }}>🗑️ Delete File</button>
+            </div>
           </div>
 
           {/* Bookmarks */}
@@ -508,6 +524,7 @@ function CommandsTab() {
         ['"go to page 5"', 'Jump to page 5'],
         ['"first page" / "beginning"', 'Jump to first page'],
         ['"last page" / "end"', 'Jump to last page'],
+        ['"delete the file" / "remove file"', 'Delete the current document'],
       ]
     },
     {
@@ -811,6 +828,10 @@ function AppInner() {
           loaded: true, page: data.page, total: data.total,
           label: data.label, text: data.text, title: data.title, ext: data.ext
         })
+        setActiveTab('doc')
+      } else if (data.action === 'document_deleted') {
+        setDocState({ loaded: false, page: 0, total: 0, label: '', text: '', title: '', ext: '' })
+        setBookmarks([])
         setActiveTab('doc')
       } else if (data.page !== undefined) {
         setDocState(s => ({ ...s, page: data.page, total: data.total, label: data.label, text: data.text }))

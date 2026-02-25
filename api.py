@@ -140,7 +140,7 @@ def get_filename_from_gemini(query: str) -> str:
 
 
 # ══════════════════════════════════════════════════════════
-#  DOCUMENT UPLOAD
+#  DOCUMENT UPLOAD & DELETION
 # ══════════════════════════════════════════════════════════
 @app.post("/api/upload")
 async def upload_file(file: UploadFile = File(...)):
@@ -174,6 +174,15 @@ async def upload_file(file: UploadFile = File(...)):
         "label":       str(doc.get_current_label() or "Page 1"),
         "text":        str(doc.get_current_text() or ""),
     }
+
+@app.delete("/api/document")
+def delete_document():
+    if not doc.page_count():
+         raise HTTPException(400, detail="No document loaded.")
+    ok = doc.unload(delete_file=True)
+    if not ok:
+         raise HTTPException(500, detail="Could not delete document.")
+    return {"ok": True, "message": "Document deleted successfully."}
 
 
 # ══════════════════════════════════════════════════════════
@@ -619,6 +628,10 @@ def command(body: CommandBody):
 
     if not doc.page_count():
         return {"action":"error","message":"No document loaded."}
+
+    if any(k in c for k in ["delete file", "delete the file", "remove file", "delete document", "remove document"]):
+        doc.unload(delete_file=True)
+        return {"action": "document_deleted", "message": "File deleted.", "tts_text": "File deleted successfully."}
 
     if any(k in c for k in ["read document","read page","read this","start reading"]):
         t = doc.get_current_label() + ". " + doc.get_current_text()
