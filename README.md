@@ -1,4 +1,4 @@
-# EchoVision — NLP Agentic RAG Document QA 🎙️📚
+# EchoVision
 
 > **futureX Project**  
 > *A fully voice-controlled, multimodal AI workspace for blind learners and professionals.*
