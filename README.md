@@ -62,7 +62,7 @@ pip install -r requirements.txt
 echo 'GROQ_API_KEY="your_groq_api_key_here"' > .env
 
 # Run FastAPI Server
-python api.py
+python -m uvicorn api:app --host 0.0.0.0 --port 8080 --reload
 ```
 *(The backend typically runs on http://localhost:8000)*
 
@@ -116,4 +116,4 @@ EchoVision/
 
 ---
 
-*Made with ❤️ for futureX & Hackathon 2026*
+*Made with ❤️ for HackXAmrita 2.0*
